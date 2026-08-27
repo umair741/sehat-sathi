@@ -36,10 +36,8 @@ def triage_node(state: SehatSathiState) -> SehatSathiState:
 
 if __name__ == "__main__":
     test_cases = [
-        "seenay mein bohot takleef ho rahi hai, saans nahi aa rahi",
-        "halka sar dard hai",
-        "3 din se ulti ho rahi hai aur kamzori bhi hai",
-        "dil ghabra raha hai aur pasina aa raha hai",
+     "مجھے بخار ہے اور جسم میں درد ہے",
+    "چھاتی میں شدید درد ہو رہا ہے",
     ]
     for query in test_cases:
         result = run_triage(query)
