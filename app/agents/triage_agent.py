@@ -1,6 +1,17 @@
+import json
+import os
+
 from app.config import settings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.models.schemas import TriageResult
+from app.agents.state import SehatSathiState
+
+
+prompts_path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts.json")
+with open(_prompts_path, "r", encoding="utf-8") as f:
+    _prompts = json.load(f)
+
+TRIAGE_SYSTEM_PROMPT = _prompts["triage"]["system_prompt"]
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-3.6-flash",
@@ -9,16 +20,18 @@ llm = ChatGoogleGenerativeAI(
 
 structured_llm = llm.with_structured_output(TriageResult)
 
-TRIAGE_SYSTEM_PROMPT = """You are a medical triage assistant.
-Classify the user's symptom description into: emergency, moderate, or mild.
-Be conservative — when in doubt, escalate severity.
-Give a short, clear reasoning for your classification."""
-
 
 def run_triage(query: str) -> TriageResult:
     full_prompt = f"{TRIAGE_SYSTEM_PROMPT}\n\nSymptom: {query}"
     result = structured_llm.invoke(full_prompt)
     return result
+
+
+def triage_node(state: SehatSathiState) -> SehatSathiState:
+    result = run_triage(state["query"])
+    state["severity"] = result.severity
+    state["reasoning"] = result.reasoning
+    return state
 
 
 if __name__ == "__main__":
