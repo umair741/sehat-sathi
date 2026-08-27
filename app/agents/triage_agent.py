@@ -7,7 +7,7 @@ from app.models.schemas import TriageResult
 from app.agents.state import SehatSathiState
 
 
-prompts_path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts.json")
+_prompts_path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts.json")
 with open(_prompts_path, "r", encoding="utf-8") as f:
     _prompts = json.load(f)
 
