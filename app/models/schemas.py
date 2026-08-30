@@ -10,3 +10,8 @@ class TriageResult(BaseModel):
 class TriageRequest(BaseModel):
     query: str
     history: Optional[str] = None
+
+
+class RoutingResult(BaseModel):
+    route: Literal["triage", "health_info", "booking", "general"]
+    reasoning: str

@@ -3,6 +3,7 @@ from typing import TypedDict, Optional
 
 class SehatSathiState(TypedDict):
     query: str
+    route_to: Optional[str]
     severity: Optional[str]
     reasoning: Optional[str]
     health_response: Optional[str]
