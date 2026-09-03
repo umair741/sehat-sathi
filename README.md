@@ -13,7 +13,7 @@ User Query (Urdu / Roman Urdu / English)
 └──────┬───────┘
        │
        ├── "triage"       → Triage Agent (symptom → severity)
-       ├── "health_info"  → Health Info Agent (RAG — coming soon)
+       ├── "health_info"  → Health Info Agent (RAG with citations) ✅
        ├── "booking"      → Booking Agent (Google Calendar — coming soon)
        └── "general"      → Direct reply (greetings, chitchat)
 ```
@@ -24,9 +24,9 @@ User Query (Urdu / Roman Urdu / English)
 START → supervisor → conditional routing:
     │
     ├── triage       → classifies severity (emergency / moderate / mild) → END
-    ├── health_info  → answers health questions with citations         → END
-    ├── booking      → books appointment in Google Calendar            → END
-    └── general      → responds with greeting                          → END
+    ├── health_info  → RAG: embed → Pinecone search → Gemini cited answer → END
+    ├── booking      → placeholder ("coming soon")                        → END
+    └── general      → responds with greeting                             → END
 ```
 
 ## What's Built
@@ -44,35 +44,46 @@ START → supervisor → conditional routing:
 - Conservative approach — escalates when in doubt
 
 ### LangGraph Full Wiring ✅
-- Shared state schema (`SehatSathiState`) with `route_to` field
+- Shared state schema (`SehatSathiState`)
 - Supervisor as entry point with conditional edges to all agents
-- Health info and booking nodes have placeholders (ready for real logic)
+- Health info node wired to real RAG agent
+- Booking node placeholder ("coming soon")
 - General node returns Urdu greeting
 
-### RAG Pipeline (Partial) ⚠️
-- File loading via LangChain `DirectoryLoader` — working
-- Chunking via `RecursiveCharacterTextSplitter` with paragraph-first splitting — working
-- Embedding + Pinecone storage — not yet connected
-- Answer generation — not yet connected
+### RAG Pipeline ✅ (End-to-End Working)
+- **Ingestion**: PDF → chunks (500 chars, paragraph-first splitting) — `app/rag/ingest.py`
+- **Embedding**: HuggingFace Inference API via `HF_TOKEN` (`sentence-transformers/all-MiniLM-L6-v2`, 384-dim) — `app/rag/embeddings.py`
+- **Storage**: Pinecone upsert with metadata (page, source) + content-hash change detection — `app/services/vector_store.py`
+- **Retrieval**: Query embedding → Pinecone top-k search with similarity scores
+- **Answer Generation**: Retrieved chunks + Gemini → cited answer with disclaimer — `app/agents/health_info_agent.py`
+- **Verified**: 81 vectors stored, "diabetes kya hai?" returns relevant WHO/MedlinePlus chunks (scores 0.58 / 0.42 / 0.41)
+
+### API ✅
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Status check |
+| GET | `/chat/health` | Health check |
+| POST | `/chat` | Main endpoint — supervisor routing + agent response (`message`, optional `session_id`) |
+| POST | `/health/ask` | Direct RAG — retrieve + cited answer (`question`, optional `top_k`) |
+| POST | `/health/search` | Retrieval only — chunks + similarity scores (`query`, optional `top_k`) |
 
 ### Config / Environment ✅
 - API keys managed via `.env` + `pydantic-settings`
-- Supports: Google API, Pinecone, Supabase, Groq, Google Calendar
+- Supports: Google API, HuggingFace token, Pinecone, Supabase, Groq, Google Calendar
 
 ### Prompts ✅
-- All agent prompts centralized in `prompts.json` (triage, supervisor)
-- Easy to edit without touching code
+- All agent prompts centralized in `prompts.json` (triage, supervisor, health_info)
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| LLM | Gemini 1.5 Flash (`langchain-google-genai`) |
+| LLM | Gemini (`langchain-google-genai`) |
 | Orchestration | LangGraph (`StateGraph` with conditional edges) |
-| Embeddings | Gemini `text-embedding-004` (768 dim) |
+| Embeddings | HuggingFace Inference API — `all-MiniLM-L6-v2` (384 dim) |
 | Vector DB | Pinecone (cosine similarity) |
-| Database | Supabase |
-| Calendar | Google Calendar API |
+| Database | Supabase (not connected yet) |
+| Calendar | Google Calendar API (not built yet) |
 | API | FastAPI + Uvicorn |
 | Config | `pydantic-settings` + `.env` |
 | Deployment | Docker (3.11-slim) |
@@ -81,13 +92,12 @@ START → supervisor → conditional routing:
 
 | Priority | Task | Status |
 |----------|------|--------|
-| 🔴 High | **Health Info Agent** — connect RAG embedding + Pinecone + answer generation | Placeholder exists |
-| 🔴 High | **Booking Agent** — extract date/time from message, create Google Calendar event | Placeholder exists |
-| 🔴 High | **FastAPI `/chat` endpoint** — wire the full graph to the API | Stub only |
-| 🟡 Medium | **Health data** — populate `data/health_docs/` with real health content | Empty |
+| 🔴 High | **Booking Agent** — extract date/time, create Google Calendar event | Placeholder |
+| 🔴 High | **Calendar Service** — Google Calendar API wrapper | Empty |
 | 🟡 Medium | **Supabase integration** — chat history, user sessions | Not started |
-| 🟡 Medium | **Frontend** — simple chat UI (Streamlit or HTML) | Not started |
-| 🟢 Low | **Emergency detection** — auto-detect red flags, push "Call 1122" | Not started |
+| 🟡 Medium | **Frontend** — chat UI (Streamlit or HTML) | Not started |
+| 🟢 Low | **Emergency red flags** — keyword detection, instant "Call 1122" | Not started |
+| 🟢 Low | **Hybrid search** — keyword + semantic retrieval | Not started |
 | 🟢 Low | **Deployment** — Docker Compose + hosting | Dockerfile exists |
 
 ## File Structure
@@ -95,29 +105,34 @@ START → supervisor → conditional routing:
 ```
 app/
 ├── agents/
-│   ├── supervisor.py      ✅ Routes queries to correct agent
-│   ├── triage_agent.py    ✅ Classifies symptom severity
-│   ├── booking_agent.py   ⬜ Placeholder — Google Calendar booking
-│   ├── health_info_agent.py ⬜ Placeholder — RAG health Q&A
-│   ├── graph.py           ✅ Full LangGraph with conditional routing
-│   └── state.py           ✅ Shared state schema
+│   ├── supervisor.py        ✅ Routes queries to correct agent
+│   ├── triage_agent.py      ✅ Classifies symptom severity
+│   ├── health_info_agent.py ✅ RAG: retrieve + Gemini cited answer
+│   ├── booking_agent.py     ⬜ Empty — Google Calendar booking
+│   ├── graph.py             ✅ Full LangGraph with conditional routing
+│   └── state.py             ✅ Shared state schema
 ├── api/routes/
-│   ├── chat.py            ⬜ Stub
-│   ├── booking.py         ⬜ Stub
-│   └── health.py          ⬜ Stub
+│   ├── chat.py              ✅ Async /chat + /chat/health
+│   ├── health.py            ✅ Direct RAG: /health/ask + /health/search
+│   └── booking.py           ⬜ Stub — references missing calendar service
 ├── rag/
-│   ├── ingest.py          ⚠️ Load + chunk done, embed + store pending
-│   └── prompts.py         ✅ Health Q&A prompt templates
+│   ├── __init__.py          ✅ Package init
+│   ├── ingest.py            ✅ PDF load + paragraph-first chunking
+│   ├── embeddings.py        ✅ HF Inference API embeddings (384-dim)
+│   └── test_embedding.py    ✅ Quick embedding smoke test
 ├── services/
-│   ├── calendar_service.py ⬜ Empty
-│   ├── db_service.py       ⬜ Empty
-│   ├── llm_service.py      ⬜ Empty
-│   └── vector_store.py     ⬜ Empty
+│   ├── vector_store.py      ✅ Pinecone create/upsert/query
+│   ├── llm_service.py       ✅ Shared Gemini singleton
+│   ├── calendar_service.py  ⬜ Empty
+│   └── db_service.py        ⬜ Empty
 ├── models/
-│   ├── schemas.py          ✅ TriageResult, RoutingResult, TriageRequest
-│   └── db_models.py        ⬜ Empty
-├── config.py               ✅ All env vars configured
-└── main.py                 ⬜ FastAPI app stub
+│   └── schemas.py           ✅ TriageResult, RoutingResult, TriageRequest
+├── config.py                ✅ All env vars configured
+└── main.py                  ✅ FastAPI app + CORS + routers
+tests/
+└── test_rag_retriever.py    ✅ Embed query → Pinecone search → print results
+scripts/
+└── seed_vector_db.py        ⬜ Empty
 ```
 
 ## How to Run
@@ -126,12 +141,32 @@ app/
 # Install dependencies
 pip install -r requirements.txt
 
-# Test supervisor routing
+# 1. Ingest health docs into Pinecone (one-time)
+python -m app.rag.embeddings
+
+# 2. Test retriever (embed query → search Pinecone)
+python -m tests.test_rag_retriever
+
+# 3. Test supervisor routing
 python -m app.agents.supervisor
 
-# Test full graph
+# 4. Test triage severity
+python -m app.agents.triage_agent
+
+# 5. Test full graph (all agents end-to-end)
 python -m app.agents.graph
 
-# Test RAG loading
-python -m app.rag.ingest
+# 6. Start API
+uvicorn app.main:app --reload
+# Docs: http://localhost:8000/docs
 ```
+
+## Demo Queries
+
+| Input | Expected Flow |
+|-------|---------------|
+| `"seene me dard hai aur saans nahi aa rahi"` | triage → EMERGENCY → "Call 1122" |
+| `"diabetes kya hai?"` | health_info → RAG cited answer |
+| `"malaria se kaise bache?"` | health_info → RAG cited answer |
+| `"doctor ka appointment chahiye"` | booking → placeholder |
+| `"hello"` | general → Urdu greeting |

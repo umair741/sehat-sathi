@@ -1,20 +1,27 @@
-from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import re
+from pypdf import PdfReader
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-DATA_DIR = "data/health_docs"
+PDF_PATH = "data/health_docs/Sehat_Sathi_Health_Knowledge_Base.pdf"
 
 
-def load_files(folder: str):
-    loader = DirectoryLoader(
-        folder,
-        glob="**/*.{md,txt}",
-        loader_cls=TextLoader,
-        loader_kwargs={"encoding": "utf-8"},
-    )
-    docs = loader.load()
-    for doc in docs:
-        print(f"Loaded: {doc.metadata['source']} ({len(doc.page_content)} chars)")
+SKIP_PAGES = {0, 1}  # Title page and Table of Contents
+
+
+def load_pdf(path: str):
+    reader = PdfReader(path)
+    docs = []
+    for i, page in enumerate(reader.pages):
+        if i in SKIP_PAGES:
+            continue
+        docs.append(Document(
+            page_content=page.extract_text(),
+            metadata={"source": path, "page": i}
+        ))
+    print(f"Loaded {len(docs)} pages from {path} (skipped pages {SKIP_PAGES})")
     return docs
+
 
 def chunking(docs):
     splitter = RecursiveCharacterTextSplitter(
@@ -27,9 +34,50 @@ def chunking(docs):
     return chunks
 
 
-if __name__ == "__main__":
-    docs = load_files(DATA_DIR)
-    print(f"\nTotal files loaded: {len(docs)}")
+def extract_page_sources(docs):
+    """
+    Scan each page for 'Source:' attribution and build a page -> source map.
+    If a page has no source, carry forward the last known source.
+    """
+    source_pattern = re.compile(r"Source:\s*(.+)", re.IGNORECASE)
+    page_sources = {}
+    last_source = ""
 
+    for doc in docs:
+        page = doc.metadata["page"]
+        match = source_pattern.search(doc.page_content)
+        if match:
+            last_source = match.group(1).strip()
+        page_sources[page] = last_source
+
+    return page_sources
+
+
+def attach_metadata(chunks, page_sources):
+    """
+    Attach to every chunk:
+      - source_file: the PDF file path
+      - verified_source: WHO, CDC, MedlinePlus etc. (from its page)
+    """
+    for chunk in chunks:
+        page = chunk.metadata.get("page", 0)
+        chunk.metadata["source_file"] = PDF_PATH
+        chunk.metadata["verified_source"] = page_sources.get(page, "")
+
+    return chunks
+
+
+if __name__ == "__main__":
+    docs = load_pdf(PDF_PATH)
+    page_sources = extract_page_sources(docs)
     chunks = chunking(docs)
-    print(f"\nFirst chunk preview:\n{chunks[0].page_content[:200]}")
+    chunks = attach_metadata(chunks, page_sources)
+
+    print(f"\n=== Total chunks: {len(chunks)} ===\n")
+    for i, chunk in enumerate(chunks[:3]):
+        print(f"--- Chunk {i+1} | page {chunk.metadata['page']} | {len(chunk.page_content)} chars ---")
+        print(f"Source file: {chunk.metadata['source_file']}")
+        print(f"Verified source: {chunk.metadata['verified_source']}")
+        print(f"Content:\n{chunk.page_content[:200]}")
+        print()
+

@@ -2,13 +2,7 @@ from langgraph.graph import StateGraph, END
 from app.agents.state import SehatSathiState
 from app.agents.supervisor import supervisor_node
 from app.agents.triage_agent import triage_node
-
-
-# --- Placeholder nodes (will be built later) ---
-
-def health_info_node(state: SehatSathiState) -> SehatSathiState:
-    state["health_response"] = "Health info agent coming soon."
-    return state
+from app.agents.health_info_agent import health_info_node
 
 
 def booking_node(state: SehatSathiState) -> SehatSathiState:
@@ -89,3 +83,12 @@ if __name__ == "__main__":
             "booking_confirmation": None,
         })
         print(f"\nQuery: {query}")
+        print(f"  Route: {result.get('route_to')}")
+        if result.get('severity'):
+            print(f"  Severity: {result.get('severity')}")
+        if result.get('reasoning'):
+            print(f"  Reasoning: {result.get('reasoning')}")
+        if result.get('health_response'):
+            print(f"  Health response: {result.get('health_response')}")
+        if result.get('booking_confirmation'):
+            print(f"  Booking: {result.get('booking_confirmation')}")

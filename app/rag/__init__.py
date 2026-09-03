@@ -1,0 +1,1 @@
+"""RAG pipeline — ingestion, embedding, and retrieval for Sehat Sathi."""

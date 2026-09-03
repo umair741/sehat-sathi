@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     google_api_key: str = ""
     groq_api_key: str = ""
+    hf_token: str = ""
     pinecone_api_key: str = ""
     pinecone_index_name: str = "sehat-sathi-health-docs"
     supabase_url: str = ""
