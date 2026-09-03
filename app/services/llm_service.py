@@ -1,15 +1,15 @@
-"""Shared Gemini LLM client for Sehat Sathi agents."""
+"""Shared LLM client for Sehat Sathi agents (Groq)."""
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from app.config import settings
 
-_llm: ChatGoogleGenerativeAI | None = None
+_llm: ChatGroq | None = None
 
-def get_llm() -> ChatGoogleGenerativeAI:
+def get_llm() -> ChatGroq:
     global _llm
     if _llm is None:
-        _llm = ChatGoogleGenerativeAI(
-            model="gemini-3.6-flash",
-            google_api_key=settings.google_api_key,
+        _llm = ChatGroq(
+            model="openai/gpt-oss-120b",
+            groq_api_key=settings.groq_api_key,
         )
     return _llm

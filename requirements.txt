@@ -5,6 +5,7 @@ langchain
 langchain-core
 langchain-community
 langchain-google-genai
+langchain-groq
 pinecone
 fpdf2
 pypdf

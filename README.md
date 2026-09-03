@@ -75,7 +75,7 @@ START → supervisor → conditional routing:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/` | Status check |
-| GET | `/chat/health` | Health check |
+| GET | `/health` | Health check |
 | POST | `/chat` | Main endpoint — supervisor routing + agent response (`message`, optional `session_id`) |
 | POST | `/health/ask` | Direct RAG — retrieve + cited answer (`question`, optional `top_k`) |
 | POST | `/health/search` | Retrieval only — chunks + similarity scores (`query`, optional `top_k`) |
@@ -189,6 +189,32 @@ uvicorn app.main:app --reload
 ```
 
 > **Note**: Frontend static files hain — kisi server ki zaroorat nahi, browser mein directly kholo. Chat API `http://127.0.0.1:8000` pe running honi chahiye (CORS enabled).
+
+## Docker Setup (Friend / Deployment)
+
+Docker se chalanay ke liye — koi Python install karne ki zaroorat nahi:
+
+```bash
+# 1. Copy .env.example → .env aur apni API keys daalo (GOOGLE_API_KEY, HF_TOKEN, PINECONE_API_KEY zaroori)
+# 2. Build + run
+docker-compose up --build
+
+# 3. Check
+curl http://localhost:8000/health
+# → {"status": "ok", "service": "Sehat Sathi"}
+```
+
+### Docker Details
+- **Python 3.11.9-slim** — local dev venv (3.11.9) se exact match
+- **Healthcheck** — `/health` pe automatic status check
+- **Volume** — `./data` mount hota hai (health docs ke liye)
+- **Secrets safe** — `.dockerignore` se `.env` image mein bake nahi hota
+
+### Manual Docker (without compose)
+```bash
+docker build -t sehat-sathi .
+docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data sehat-sathi
+```
 
 ## Demo Queries
 
