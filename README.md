@@ -1,6 +1,8 @@
 # Sehat Sathi — AI Health Assistant for Pakistan
 
-An AI-powered health triage and guidance system that works in **Urdu, Roman Urdu, and English**. Built for the 300+ million people who lack easy access to healthcare.
+An AI-powered health triage and guidance system that works in **Urdu, Roman Urdu, and English**. Built for the 220+ million people in Pakistan who lack easy access to healthcare.
+
+> **Vision**: Healthcare for everyone — in their own language, at any time, for free.
 
 ## Architecture
 
@@ -14,7 +16,7 @@ User Query (Urdu / Roman Urdu / English)
        │
        ├── "triage"       → Triage Agent (symptom → severity)
        ├── "health_info"  → Health Info Agent (RAG with citations) ✅
-       ├── "booking"      → Booking Agent (Google Calendar — coming soon)
+       ├── "booking"      → Booking Agent (in development)
        └── "general"      → Direct reply (greetings, chitchat)
 ```
 
@@ -58,6 +60,17 @@ START → supervisor → conditional routing:
 - **Answer Generation**: Retrieved chunks + Gemini → cited answer with disclaimer — `app/agents/health_info_agent.py`
 - **Verified**: 81 vectors stored, "diabetes kya hai?" returns relevant WHO/MedlinePlus chunks (scores 0.58 / 0.42 / 0.41)
 
+### Frontend ✅ (Complete UI)
+- **Landing page** (`frontend/index.html`) — problem-first design with mission, features, health topics, emergency guide
+- **Chat page** (`frontend/chat.html`) — full chat UI with session memory (localStorage), suggestions, typing indicator, severity badges
+- **Design** (`frontend/style.css`) — blue & white theme, Plus Jakarta Sans font, responsive (mobile/tablet/desktop)
+- **JS** — `script.js` (scroll reveal, smooth scroll), `chat.js` (chat logic, session management, API calls)
+- **Multilingual UI** — English + Roman Urdu copy throughout
+
+### Emergency Red Flags ✅
+- Keyword-based emergency detection utility (`app/utils/red_flags.py`)
+- Emergency responses show "Call 1122" alert box in chat
+
 ### API ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -82,9 +95,9 @@ START → supervisor → conditional routing:
 | Orchestration | LangGraph (`StateGraph` with conditional edges) |
 | Embeddings | HuggingFace Inference API — `all-MiniLM-L6-v2` (384 dim) |
 | Vector DB | Pinecone (cosine similarity) |
-| Database | Supabase (not connected yet) |
-| Calendar | Google Calendar API (not built yet) |
+| Database | Supabase (not connected yet — planned) |
 | API | FastAPI + Uvicorn |
+| Frontend | Vanilla HTML/CSS/JS (Plus Jakarta Sans, responsive, no framework) |
 | Config | `pydantic-settings` + `.env` |
 | Deployment | Docker (3.11-slim) |
 
@@ -92,11 +105,10 @@ START → supervisor → conditional routing:
 
 | Priority | Task | Status |
 |----------|------|--------|
-| 🔴 High | **Booking Agent** — extract date/time, create Google Calendar event | Placeholder |
-| 🔴 High | **Calendar Service** — Google Calendar API wrapper | Empty |
-| 🟡 Medium | **Supabase integration** — chat history, user sessions | Not started |
-| 🟡 Medium | **Frontend** — chat UI (Streamlit or HTML) | Not started |
-| 🟢 Low | **Emergency red flags** — keyword detection, instant "Call 1122" | Not started |
+| 🔴 High | **Booking Agent** — LLM multi-step conversation, doctor + slot selection, booking ID | Planned |
+| 🔴 High | **Auth / Login** — Supabase Auth (email/password) + login page | Planned |
+| 🟡 Medium | **Supabase integration** — persistent conversations, bookings, user sessions | Planned |
+| 🟡 Medium | **Speed optimization** — local embeddings (replace HF API), response caching, streaming | Planned |
 | 🟢 Low | **Hybrid search** — keyword + semantic retrieval | Not started |
 | 🟢 Low | **Deployment** — Docker Compose + hosting | Dockerfile exists |
 
@@ -108,7 +120,7 @@ app/
 │   ├── supervisor.py        ✅ Routes queries to correct agent
 │   ├── triage_agent.py      ✅ Classifies symptom severity
 │   ├── health_info_agent.py ✅ RAG: retrieve + Gemini cited answer
-│   ├── booking_agent.py     ⬜ Empty — Google Calendar booking
+│   ├── booking_agent.py     ⬜ Empty — LLM multi-step booking (planned)
 │   ├── graph.py             ✅ Full LangGraph with conditional routing
 │   └── state.py             ✅ Shared state schema
 ├── api/routes/
@@ -123,16 +135,27 @@ app/
 ├── services/
 │   ├── vector_store.py      ✅ Pinecone create/upsert/query
 │   ├── llm_service.py       ✅ Shared Gemini singleton
-│   ├── calendar_service.py  ⬜ Empty
-│   └── db_service.py        ⬜ Empty
+│   ├── calendar_service.py  ⬜ Empty — slot management (planned)
+│   └── db_service.py        ⬜ Empty — Supabase client (planned)
 ├── models/
 │   └── schemas.py           ✅ TriageResult, RoutingResult, TriageRequest
+├── utils/
+│   └── red_flags.py         ✅ Emergency keyword detection
 ├── config.py                ✅ All env vars configured
 └── main.py                  ✅ FastAPI app + CORS + routers
+frontend/
+├── index.html               ✅ Landing page (mission, features, topics)
+├── chat.html                ✅ Chat UI (sessions, suggestions, badges)
+├── style.css                ✅ Blue & white responsive design system
+├── script.js                ✅ Scroll reveal + smooth scroll
+└── chat.js                  ✅ Chat logic + localStorage session memory
 tests/
-└── test_rag_retriever.py    ✅ Embed query → Pinecone search → print results
+├── test_api_chat.py         ✅ API endpoint tests
+├── test_booking_agent.py    ⬜ Booking agent tests (planned)
+├── test_rag_retriever.py    ✅ Embed query → Pinecone search
+└── test_triage_agent.py     ✅ Triage severity tests
 scripts/
-└── seed_vector_db.py        ⬜ Empty
+└── seed_vector_db.py        ✅ Seed vector database
 ```
 
 ## How to Run
@@ -159,7 +182,13 @@ python -m app.agents.graph
 # 6. Start API
 uvicorn app.main:app --reload
 # Docs: http://localhost:8000/docs
+
+# 7. Open frontend
+# Landing page:   frontend/index.html  (browser mein kholo)
+# Chat page:      frontend/chat.html   (API running honi chahiye)
 ```
+
+> **Note**: Frontend static files hain — kisi server ki zaroorat nahi, browser mein directly kholo. Chat API `http://127.0.0.1:8000` pe running honi chahiye (CORS enabled).
 
 ## Demo Queries
 
@@ -168,5 +197,12 @@ uvicorn app.main:app --reload
 | `"seene me dard hai aur saans nahi aa rahi"` | triage → EMERGENCY → "Call 1122" |
 | `"diabetes kya hai?"` | health_info → RAG cited answer |
 | `"malaria se kaise bache?"` | health_info → RAG cited answer |
-| `"doctor ka appointment chahiye"` | booking → placeholder |
+| `"doctor ka appointment chahiye"` | booking → placeholder (in development) |
 | `"hello"` | general → Urdu greeting |
+
+## Known Issues / Fixes
+
+- **Gemini content format**: `response.content` kabhi list return karta hai (content blocks) — `health_info_agent.py` dono formats handle karta hai (string + list)
+- **HF API latency**: Query embedding ke liye free HF Inference API 3-8 sec leti hai — local embeddings planned
+- **No auth**: API open hai — Supabase Auth planned
+- **Conversations in localStorage only**: Server restart pe data nahi bachta — Supabase integration planned
