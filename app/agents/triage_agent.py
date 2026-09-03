@@ -2,9 +2,9 @@ import json
 import os
 
 from app.config import settings
-from langchain_google_genai import ChatGoogleGenerativeAI
 from app.models.schemas import TriageResult
 from app.agents.state import SehatSathiState
+from app.services.llm_service import get_llm
 
 
 _prompts_path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts.json")
@@ -13,10 +13,7 @@ with open(_prompts_path, "r", encoding="utf-8") as f:
 
 TRIAGE_SYSTEM_PROMPT = _prompts["triage"]["system_prompt"]
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-3.6-flash",
-    google_api_key=settings.google_api_key,
-)
+llm = get_llm()
 
 structured_llm = llm.with_structured_output(TriageResult)
 

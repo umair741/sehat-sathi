@@ -35,10 +35,7 @@ def chunking(docs):
 
 
 def extract_page_sources(docs):
-    """
-    Scan each page for 'Source:' attribution and build a page -> source map.
-    If a page has no source, carry forward the last known source.
-    """
+
     source_pattern = re.compile(r"Source:\s*(.+)", re.IGNORECASE)
     page_sources = {}
     last_source = ""
@@ -54,11 +51,6 @@ def extract_page_sources(docs):
 
 
 def attach_metadata(chunks, page_sources):
-    """
-    Attach to every chunk:
-      - source_file: the PDF file path
-      - verified_source: WHO, CDC, MedlinePlus etc. (from its page)
-    """
     for chunk in chunks:
         page = chunk.metadata.get("page", 0)
         chunk.metadata["source_file"] = PDF_PATH

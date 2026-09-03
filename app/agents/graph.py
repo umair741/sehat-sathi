@@ -18,7 +18,6 @@ def general_node(state: SehatSathiState) -> SehatSathiState:
 # --- Routing function ---
 
 def route_supervisor(state: SehatSathiState) -> str:
-    """Reads route_to from state and returns the next node name."""
     return state.get("route_to", "general")
 
 

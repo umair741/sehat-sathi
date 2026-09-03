@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat — Sehat Sathi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="chat-body">
+
+  <div class="chat-app">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <a href="index.html" class="brand">
+        <span class="brand-logo">🩺</span>
+        <span class="brand-name">Sehat <span>Sathi</span></span>
+      </a>
+
+      <button class="new-chat-btn" id="newChatBtn">＋ New Chat</button>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">Previous Chats</p>
+        <ul class="session-list" id="sessionList"></ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="clear-btn" id="clearBtn">🗑️ Clear All Chats</button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CHAT ============ -->
+    <div class="chat-main">
+      <header class="chat-topbar">
+        <a href="index.html" class="back-btn">←</a>
+        <div class="chat-topbar-avatar">🩺</div>
+        <div class="chat-topbar-info">
+          <h2>Sehat Sathi</h2>
+          <p><span class="status-dot"></span> Online — Ready to Help</p>
+        </div>
+      </header>
+
+      <main class="chat" id="chat"></main>
+
+      <div class="suggestions" id="suggestions">
+        <button class="suggestion" data-msg="diabetes kya hai?">💉 Diabetes kya hai?</button>
+        <button class="suggestion" data-msg="seene me dard hai">🚨 Seene me dard hai</button>
+        <button class="suggestion" data-msg="malaria se kaise bache?">🦟 Malaria se kaise bache?</button>
+        <button class="suggestion" data-msg="bukhar hai 3 din se">🤒 Bukhar hai 3 din se</button>
+      </div>
+
+      <footer class="input-bar">
+        <input type="text" id="input" placeholder="Type your health question..." autocomplete="off">
+        <button id="sendBtn" title="Send">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="chat.js"></script>
+</body>
+</html>

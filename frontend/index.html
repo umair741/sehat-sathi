@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sehat Sathi — AI Health Assistant for Pakistan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="#home" class="brand">
+        <div class="brand-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="10" fill="url(#brand-grad)"/>
+            <path d="M16 8v16M8 16h16" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="brand-grad" x1="0" y1="0" x2="32" y2="32">
+                <stop stop-color="#2563eb"/>
+                <stop offset="1" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="brand-name">Sehat Sathi</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#mission">Our Mission</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#conditions">Health Topics</a></li>
+        <li><a href="#emergency-info">Emergency</a></li>
+      </ul>
+      <a href="chat.html" class="btn btn-primary btn-sm">Start Chat →</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <header class="hero" id="home">
+    <div class="hero-bg">
+      <div class="hero-blob hero-blob-1"></div>
+      <div class="hero-blob hero-blob-2"></div>
+      <div class="hero-grid"></div>
+    </div>
+
+    <div class="hero-inner hero-inner-center">
+      <div class="hero-content hero-content-center">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Pakistan's AI Health Assistant
+        </div>
+        <h1>Your Health,<br><span class="grad-text">Your Language,</span><br>Your Time.</h1>
+        <p class="hero-sub">
+          Ask health questions in Urdu, Roman Urdu or English. Get instant answers from verified medical sources — 24/7, free, and private.
+        </p>
+        <div class="hero-ctas">
+          <a href="chat.html" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Start Health Chat
+          </a>
+          <a href="#mission" class="btn btn-ghost btn-lg">Why We Built This</a>
+        </div>
+
+        <div class="hero-trust">
+          <div class="trust-avatars">
+            <div class="avatar" style="background: #dbeafe;">👩‍⚕️</div>
+            <div class="avatar" style="background: #dcfce7;">👨‍⚕️</div>
+            <div class="avatar" style="background: #fef3c7;">👩‍💼</div>
+          </div>
+          <p>Trusted by <strong>10,000+</strong> users across Pakistan</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-text">
+          <strong>Instant</strong>
+          <span>Response</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon">🌍</div>
+        <div class="stat-text">
+          <strong>3 Languages</strong>
+          <span>Urdu, English, Roman</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-text">
+          <strong>100% Private</strong>
+          <span>Confidential</span>
+        </div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-icon">💯</div>
+        <div class="stat-text">
+          <strong>Free Forever</strong>
+          <span>No charges</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= PROBLEM / MISSION ================= -->
+  <section class="section section-problem" id="mission">
+    <div class="section-container">
+      <div class="problem-grid">
+        <div class="problem-left">
+          <span class="section-tag">Why Sehat Sathi?</span>
+          <h2>Pakistan's Healthcare <span class="grad-text">Crisis</span></h2>
+          <p class="problem-intro">
+            220 million log, lekin healthcare access abhi bhi ek sapna hai. Sehat Sathi is our answer to this crisis.
+          </p>
+
+          <div class="problem-stats">
+            <div class="problem-stat">
+              <div class="problem-stat-num">1:1,000+</div>
+              <div class="problem-stat-label">Doctor-to-patient ratio in Pakistan</div>
+            </div>
+            <div class="problem-stat">
+              <div class="problem-stat-num">70%</div>
+              <div class="problem-stat-label">People in rural areas with no doctor access</div>
+            </div>
+            <div class="problem-stat">
+              <div class="problem-stat-num">60%</div>
+              <div class="problem-stat-label">Health information only in English</div>
+            </div>
+            <div class="problem-stat">
+              <div class="problem-stat-num">40%</div>
+              <div class="problem-stat-label">Emergies not recognized in time</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="problem-right">
+          <div class="mission-card">
+            <div class="mission-icon">🎯</div>
+            <h3>Our Mission</h3>
+            <p>
+              <strong>Healthcare for everyone — in their own language, at any time, for free.</strong>
+            </p>
+            <p>
+              Sehat Sathi uses AI to bridge the gap between millions of Pakistanis and the health information they need. No appointments, no waiting rooms, no judgment — just instant, trustworthy health guidance.
+            </p>
+          </div>
+
+          <div class="impact-cards">
+            <div class="impact-card">
+              <div class="impact-icon">🚨</div>
+              <h4>Life-Saving</h4>
+              <p>Detects emergencies and tells users to call 1122 before it's too late</p>
+            </div>
+            <div class="impact-card">
+              <div class="impact-icon">📖</div>
+              <h4>Health Literacy</h4>
+              <p>Teaches people about their health in the language they understand</p>
+            </div>
+            <div class="impact-card">
+              <div class="impact-icon">🌙</div>
+              <h4>Always Available</h4>
+              <p>3 AM fever? No problem. Sehat Sathi never sleeps.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHO IT'S FOR ================= -->
+  <section class="section section-alt" id="audience">
+    <div class="section-container">
+      <div class="section-head">
+        <span class="section-tag">Who It's For</span>
+        <h2>Built for <span class="grad-text">Real People</span></h2>
+        <p>Sehat Sathi is designed for every Pakistani who needs health guidance</p>
+      </div>
+
+      <div class="audience-grid">
+        <div class="audience-card">
+          <div class="audience-emoji">👨‍👩‍👧‍👦</div>
+          <h3>Families</h3>
+          <p>Parents worried about their child's fever at night — get instant guidance without rushing to hospital</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-emoji">🏡</div>
+          <h3>Rural Communities</h3>
+          <p>Villages with no doctor — now have access to verified health information in their language</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-emoji">🎓</div>
+          <h3>Students</h3>
+          <p>Researching health topics for projects — get cited answers from WHO and MedlinePlus</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-emoji">👴</div>
+          <h3>Elderly</h3>
+          <p>Managing diabetes, blood pressure — get daily health tips and symptom guidance</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-emoji">🏃</div>
+          <h3>Young Adults</h3>
+          <p>Private health questions you're embarrassed to ask anyone else — no judgment here</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-emoji">🚑</div>
+          <h3>Emergency Situations</h3>
+          <p>When every second counts — instant triage that could save a life</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FEATURES ================= -->
+  <section class="section" id="features">
+    <div class="section-container">
+      <div class="section-head">
+        <span class="section-tag">Features</span>
+        <h2>Everything You Need for<br><span class="grad-text">Better Health</span></h2>
+        <p>Powerful AI tools designed for your health and safety</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card feature-card-large">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">🏥</div>
+          <h3>Symptom Checker</h3>
+          <p>Describe how you're feeling and get instant triage — from mild to emergency. Our AI analyzes your symptoms and tells you exactly what to do next.</p>
+          <div class="feature-visual">
+            <div class="severity-pills">
+              <span class="pill pill-green">✓ Mild</span>
+              <span class="pill pill-yellow">⚡ Moderate</span>
+              <span class="pill pill-red">🚨 Emergency</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">📚</div>
+          <h3>Trusted Answers</h3>
+          <p>Every answer comes from WHO & MedlinePlus — verified medical sources you can trust.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">🗣️</div>
+          <h3>Your Language</h3>
+          <p>Chat in Urdu, Roman Urdu, or English — whichever feels natural to you.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">⚡</div>
+          <h3>24/7 Available</h3>
+          <p>No waiting rooms, no appointments. Get answers any time, day or night.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8);">🚨</div>
+          <h3>Emergency Detection</h3>
+          <p>Recognizes life-threatening symptoms and guides you to call 1122 immediately.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);">🔒</div>
+          <h3>Completely Private</h3>
+          <p>Your health data stays between you and Sehat Sathi. 100% confidential.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section class="section section-dark" id="how">
+    <div class="section-container">
+      <div class="section-head">
+        <span class="section-tag light">Simple Process</span>
+        <h2>How It Works</h2>
+        <p>Three simple steps to better health guidance</p>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon-wrap">💬</div>
+          <h3>Ask Your Question</h3>
+          <p>Type your symptom or health question in any language you're comfortable with</p>
+        </div>
+        <div class="step-connector">
+          <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
+            <path d="M0 12h32M28 6l8 6-8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon-wrap">🤖</div>
+          <h3>AI Analyzes</h3>
+          <p>Sehat Sathi finds the right information from verified medical sources</p>
+        </div>
+        <div class="step-connector">
+          <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
+            <path d="M0 12h32M28 6l8 6-8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon-wrap">✅</div>
+          <h3>Get Clear Guidance</h3>
+          <p>Receive easy-to-understand answers with advice on what to do next</p>
+        </div>
+      </div>
+
+      <div class="example-box">
+        <h4>💡 Try asking these:</h4>
+        <div class="examples-grid">
+          <div class="example-chip">"bukhar hai 3 din se"</div>
+          <div class="example-chip">"What are dengue symptoms?"</div>
+          <div class="example-chip">"malaria se kaise bache?"</div>
+          <div class="example-chip">"diabetes ki alamat kya hain?"</div>
+          <div class="example-chip">"seene me dard hai"</div>
+          <div class="example-chip">"How to control blood pressure?"</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONDITIONS ================= -->
+  <section class="section" id="conditions">
+    <div class="section-container">
+      <div class="section-head">
+        <span class="section-tag">Health Topics</span>
+        <h2>Common Health Questions</h2>
+        <p>Get information about common health issues in Pakistan</p>
+      </div>
+
+      <div class="conditions-grid">
+        <div class="condition-card">
+          <div class="condition-icon">🦟</div>
+          <h3>Malaria</h3>
+          <p>Symptoms, prevention & treatment</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">🫁</div>
+          <h3>Tuberculosis</h3>
+          <p>TB symptoms, testing & treatment</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">💉</div>
+          <h3>Diabetes</h3>
+          <p>Blood sugar management & diet</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">❤️</div>
+          <h3>Heart Health</h3>
+          <p>Heart attack signs & prevention</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">🤒</div>
+          <h3>Dengue Fever</h3>
+          <p>Warning signs & home care</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">🍽️</div>
+          <h3>Food Poisoning</h3>
+          <p>Recovery tips & prevention</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">☀️</div>
+          <h3>Heatstroke</h3>
+          <p>Recognition & emergency cooling</p>
+        </div>
+        <div class="condition-card">
+          <div class="condition-icon">🫁</div>
+          <h3>Asthma</h3>
+          <p>Attack management & triggers</p>
+        </div>
+      </div>
+
+      <div class="conditions-cta">
+        <p>Don't see your topic? Ask anyway — Sehat Sathi covers many more!</p>
+        <a href="chat.html" class="btn btn-primary btn-lg">Ask Your Question →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EMERGENCY ================= -->
+  <section class="section" id="emergency-info">
+    <div class="section-container">
+      <div class="emergency-card">
+        <div class="emergency-left">
+          <div class="emergency-icon-wrap">
+            <span>🚨</span>
+          </div>
+        </div>
+        <div class="emergency-right">
+          <span class="emergency-tag">Emergency Guide</span>
+          <h2>When to Call for Help</h2>
+          <p>If you or someone near you experiences any of these, don't wait:</p>
+          <ul class="emergency-list">
+            <li>
+              <span class="check">✓</span>
+              <span>Severe chest pain or pressure</span>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <span>Difficulty breathing or shortness of breath</span>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <span>Signs of stroke (face drooping, arm weakness, speech difficulty)</span>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <span>Severe bleeding or major injury</span>
+            </li>
+            <li>
+              <span class="check">✓</span>
+              <span>Loss of consciousness</span>
+            </li>
+          </ul>
+          <div class="emergency-cta-box">
+            <strong>📞 Call 1122 (Rescue) Immediately</strong>
+            <p>Or go to the nearest hospital. Every second counts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TRUST ================= -->
+  <section class="section section-alt">
+    <div class="section-container">
+      <div class="section-head">
+        <span class="section-tag">Trustworthy</span>
+        <h2>Built on Medical Knowledge</h2>
+        <p>Answers from verified health sources you can trust</p>
+      </div>
+
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon">🌍</div>
+          <h3>WHO Guidelines</h3>
+          <p>Based on World Health Organization recommendations and global medical standards</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🏥</div>
+          <h3>MedlinePlus</h3>
+          <p>Information from the U.S. National Library of Medicine — one of the most trusted sources</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">📖</div>
+          <h3>Cited Sources</h3>
+          <p>Every answer shows where the information comes from — full transparency, always</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <div class="cta-bg-shapes">
+        <div class="cta-shape cta-shape-1"></div>
+        <div class="cta-shape cta-shape-2"></div>
+      </div>
+      <h2>Ready to Take Control of Your Health?</h2>
+      <p>Free. Private. Available 24/7. In your language.</p>
+      <a href="chat.html" class="btn btn-white btn-lg">
+        💬 Start Your Health Chat
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="brand-icon">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="10" fill="url(#brand-grad2)"/>
+              <path d="M16 8v16M8 16h16" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="brand-grad2" x1="0" y1="0" x2="32" y2="32">
+                  <stop stop-color="#2563eb"/>
+                  <stop offset="1" stop-color="#3b82f6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-name">Sehat Sathi</span>
+        </div>
+        <p class="footer-tagline">Sehat har kisi ka haq hai — aur ab har kisi ki zuban mein.</p>
+      </div>
+
+      <div class="footer-links-grid">
+        <a href="#mission">Our Mission</a>
+        <a href="#features">Features</a>
+        <a href="#how">How It Works</a>
+        <a href="#conditions">Health Topics</a>
+        <a href="#emergency-info">Emergency</a>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-disclaimer">
+          ⚠️ Sehat Sathi provides general health information only — not a replacement for professional medical advice. Always consult a doctor for diagnosis and treatment. In emergencies, call 1122 immediately.
+        </p>
+        <p class="footer-copy">© 2026 Sehat Sathi — AI Health Assistant for Pakistan</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,11 +1,6 @@
-"""Health Info Agent — RAG-based health question answering.
-
-Flow: query → embed → search Pinecone → build context → Gemini answer with citations.
-"""
 
 import json
 import os
-
 from app.agents.state import SehatSathiState
 from app.rag.embeddings import embed_text
 from app.services.vector_store import query_index
@@ -54,7 +49,20 @@ def run_health_info(query: str, top_k: int = 5) -> str:
         f"Answer:"
     )
     response = llm.invoke(prompt)
-    return response.content
+    
+    # Handle both string and list content formats
+    content = response.content
+    if isinstance(content, list):
+        # Extract text from content blocks
+        text_parts = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                text_parts.append(block.get("text", ""))
+            elif hasattr(block, "text"):
+                text_parts.append(block.text)
+        return "\n".join(text_parts)
+    
+    return content
 
 
 def health_info_node(state: SehatSathiState) -> SehatSathiState:

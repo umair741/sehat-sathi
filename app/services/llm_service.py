@@ -5,9 +5,7 @@ from app.config import settings
 
 _llm: ChatGoogleGenerativeAI | None = None
 
-
 def get_llm() -> ChatGoogleGenerativeAI:
-    """Return a singleton Gemini LLM instance (lazy-init)."""
     global _llm
     if _llm is None:
         _llm = ChatGoogleGenerativeAI(
