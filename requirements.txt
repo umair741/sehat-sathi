@@ -11,6 +11,7 @@ fpdf2
 pypdf
 huggingface_hub
 supabase
+psycopg2-binary
 pydantic
 pydantic-settings
 python-dotenv

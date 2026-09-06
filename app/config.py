@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     pinecone_index_name: str = "sehat-sathi-health-docs"
     supabase_url: str = ""
     supabase_key: str = ""
+    supabase_anon_key: str = ""
     google_calendar_credentials_json: str = ""
     env: str = "development"
     log_level: str = "INFO"

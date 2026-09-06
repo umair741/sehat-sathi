@@ -4,7 +4,7 @@ from typing import Literal, Optional
 
 class TriageResult(BaseModel):
     severity: Literal["emergency", "moderate", "mild"]
-    reasoning: str = ""
+    reasoning: str
 
 
 class TriageRequest(BaseModel):
@@ -14,4 +14,4 @@ class TriageRequest(BaseModel):
 
 class RoutingResult(BaseModel):
     route: Literal["triage", "health_info", "booking", "general"]
-    reasoning: str = ""
+    reasoning: str
