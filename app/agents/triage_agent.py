@@ -15,7 +15,7 @@ TRIAGE_SYSTEM_PROMPT = _prompts["triage"]["system_prompt"]
 
 llm = get_llm()
 
-structured_llm = llm.with_structured_output(TriageResult)
+structured_llm = llm.with_structured_output(TriageResult, method="json_mode")
 
 
 def run_triage(query: str) -> TriageResult:

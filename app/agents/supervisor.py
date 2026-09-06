@@ -14,7 +14,7 @@ SUPERVISOR_PROMPT = _prompts["supervisor"]["system_prompt"]
 
 
 llm = get_llm()
-structured_llm = llm.with_structured_output(RoutingResult)
+structured_llm = llm.with_structured_output(RoutingResult, method="json_mode")
 
 
 def run_supervisor(query: str) -> RoutingResult:

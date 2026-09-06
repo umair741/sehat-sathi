@@ -1,6 +1,6 @@
 // Sehat Sathi — Chat Page Logic (with per-user memory in localStorage)
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://sehat-sathi-production-32ce.up.railway.app";
 
 const chatEl = document.getElementById("chat");
 const inputEl = document.getElementById("input");
