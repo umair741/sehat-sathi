@@ -23,9 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the app
 COPY . .
 
-# Data volume (health docs) — friend apna data yahan daal sakta hai
-VOLUME ["/app/data"]
-
 EXPOSE 8000
 
 # Healthcheck — FastAPI /health endpoint
