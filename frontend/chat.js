@@ -91,11 +91,11 @@ async function apiPost(path, body) {
 async function loadConversations() {
   try {
     conversations = await apiGet("/auth/conversations");
-    renderSessionList();
   } catch (err) {
     console.error("Failed to load conversations", err);
     conversations = [];
   }
+  renderSessionList();
 }
 
 async function loadConversationMessages(conversationId) {
@@ -130,8 +130,10 @@ async function loadConversationMessages(conversationId) {
 function startNewChat() {
   currentConversationId = null;
   chatEl.innerHTML = "";
+  suggestionsEl.style.display = "flex";
   renderWelcome();
   renderSessionList();
+  inputEl.value = "";
   inputEl.focus();
 }
 
@@ -273,6 +275,13 @@ async function sendMessage(message) {
     // Update conversation id from backend
     if (data.session_id && !currentConversationId) {
       currentConversationId = data.session_id;
+      // Optimistically add the new conversation so it appears instantly
+      const newConversation = {
+        id: data.session_id,
+        title: text.length > 60 ? text.slice(0, 60) + "..." : text,
+      };
+      conversations = [newConversation, ...conversations.filter((c) => c.id !== data.session_id)];
+      renderSessionList();
       await loadConversations();
     }
   } catch (err) {
