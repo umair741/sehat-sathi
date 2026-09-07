@@ -1,234 +1,213 @@
 # Sehat Sathi — AI Health Assistant for Pakistan
 
-An AI-powered health triage and guidance system that works in **Urdu, Roman Urdu, and English**. Built for the 220+ million people in Pakistan who lack easy access to healthcare.
+An AI-powered health assistant that works in **Urdu, Roman Urdu, and English** — built for the 220+ million people in Pakistan who lack easy access to reliable healthcare guidance.
 
 > **Vision**: Healthcare for everyone — in their own language, at any time, for free.
 
+## Live Demo
+
+| | URL |
+|---|---|
+| Frontend | https://sehat-sathi-peach.vercel.app |
+| Backend API | https://sehat-sathi-production-32ce.up.railway.app |
+| API Docs | https://sehat-sathi-production-32ce.up.railway.app/docs |
+
 ## Architecture
+
+A **supervisor-based multi-agent system** built with LangGraph:
 
 ```
 User Query (Urdu / Roman Urdu / English)
     │
     ▼
 ┌──────────────┐
-│  Supervisor   │  ← Gemini classifies intent
+│  Supervisor   │  ← Groq LLM classifies intent (structured output)
 └──────┬───────┘
        │
-       ├── "triage"       → Triage Agent (symptom → severity)
-       ├── "health_info"  → Health Info Agent (RAG with citations) ✅
+       ├── "triage"       → Triage Agent (symptom → emergency/moderate/mild)
+       ├── "health_info"  → RAG Agent (Pinecone retrieval + cited answer)
        ├── "booking"      → Booking Agent (in development)
-       └── "general"      → Direct reply (greetings, chitchat)
+       └── "general"      → Greetings / chitchat / unclear input
 ```
 
 ### Graph Flow (LangGraph)
 
 ```
 START → supervisor → conditional routing:
-    │
-    ├── triage       → classifies severity (emergency / moderate / mild) → END
-    ├── health_info  → RAG: embed → Pinecone search → Gemini cited answer → END
-    ├── booking      → placeholder ("coming soon")                        → END
-    └── general      → responds with greeting                             → END
+    ├── triage       → severity classification → END
+    ├── health_info  → embed → Pinecone search → cited answer → END
+    ├── booking      → placeholder ("coming soon")            → END
+    └── general      → greeting response                       → END
 ```
 
-## What's Built
+## Features
 
-### Supervisor Agent ✅
-- Routes user queries to the correct agent using Gemini structured output
-- Handles 4 routes: `triage`, `health_info`, `booking`, `general`
-- Tested with Urdu, Roman Urdu, and English — all route correctly
-- Prompt stored in `prompts.json`
+### Multi-Agent Routing ✅
+- Supervisor agent routes every query to the right agent using structured LLM output
+- Few-shot prompted for 4 routes: `triage`, `health_info`, `booking`, `general`
+- Vague/off-topic input safely falls back to `general` (no false triage routing)
 
-### Triage Agent ✅
-- Classifies symptoms into `emergency` / `moderate` / `mild`
-- Structured output via Pydantic (`TriageResult`: severity + reasoning)
-- Works with pure Urdu script and Roman Urdu
-- Conservative approach — escalates when in doubt
+### Symptom Triage ✅
+- Classifies symptoms into `emergency` / `moderate` / `mild` with a severity rubric
+- Red-flag based escalation: only explicit red-flag symptoms trigger `emergency` (1122 alert)
+- Guardrails against false emergencies — unclear input gets a friendly follow-up question, never an alarm
+- Patient-facing responses in Roman Urdu (no internal English reasoning leaked to users)
 
-### LangGraph Full Wiring ✅
-- Shared state schema (`SehatSathiState`)
-- Supervisor as entry point with conditional edges to all agents
-- Health info node wired to real RAG agent
-- Booking node placeholder ("coming soon")
-- General node returns Urdu greeting
+### RAG Health Info Agent ✅
+- **Ingestion**: health knowledge-base PDF → 500-char paragraph-first chunks (`app/rag/ingest.py`)
+- **Embeddings**: HuggingFace Inference API, `sentence-transformers/all-MiniLM-L6-v2` (384-dim)
+- **Vector DB**: Pinecone (cosine similarity, content-hash change detection)
+- **Retrieval**: query embedding → top-k semantic search with metadata (page, source)
+- **Generation**: retrieved chunks + Groq LLM → **cited answer** ([1], [2]…) + medical disclaimer
+- Answers in the same language the user asked (Urdu / Roman Urdu / English)
 
-### RAG Pipeline ✅ (End-to-End Working)
-- **Ingestion**: PDF → chunks (500 chars, paragraph-first splitting) — `app/rag/ingest.py`
-- **Embedding**: HuggingFace Inference API via `HF_TOKEN` (`sentence-transformers/all-MiniLM-L6-v2`, 384-dim) — `app/rag/embeddings.py`
-- **Storage**: Pinecone upsert with metadata (page, source) + content-hash change detection — `app/services/vector_store.py`
-- **Retrieval**: Query embedding → Pinecone top-k search with similarity scores
-- **Answer Generation**: Retrieved chunks + Gemini → cited answer with disclaimer — `app/agents/health_info_agent.py`
-- **Verified**: 81 vectors stored, "diabetes kya hai?" returns relevant WHO/MedlinePlus chunks (scores 0.58 / 0.42 / 0.41)
+### Multi-turn Conversation Memory ✅
+- Conversation history threads through every agent via shared LangGraph state
+- History persists in Supabase, so context survives across sessions and devices
 
-### Frontend ✅ (Complete UI)
-- **Landing page** (`frontend/index.html`) — problem-first design with mission, features, health topics, emergency guide
-- **Chat page** (`frontend/chat.html`) — full chat UI with session memory (localStorage), suggestions, typing indicator, severity badges
-- **Design** (`frontend/style.css`) — blue & white theme, Plus Jakarta Sans font, responsive (mobile/tablet/desktop)
-- **JS** — `script.js` (scroll reveal, smooth scroll), `chat.js` (chat logic, session management, API calls)
-- **Multilingual UI** — English + Roman Urdu copy throughout
+### Authentication & Persistence ✅
+- Supabase Auth (email/password + Google OAuth) with JWT verification middleware
+- `/chat` is dual-mode: authenticated chats persist user + bot messages; anonymous chats still work
+- Conversation + message storage in Supabase with Row-Level Security
+
+### Frontend ✅
+- Landing page (`index.html`), auth page (`auth.html`), full chat UI (`chat.html`)
+- Session list with conversation history, suggestions, typing indicator, severity badges
+- Emergency responses show a "📞 Call 1122 (Rescue) immediately" alert box
+- Responsive design (mobile/tablet/desktop), Plus Jakarta Sans, blue & white theme
 
 ### Emergency Red Flags ✅
 - Keyword-based emergency detection utility (`app/utils/red_flags.py`)
-- Emergency responses show "Call 1122" alert box in chat
 
-### API ✅
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| LLM | Groq (`openai/gpt-oss-120b`) via `langchain-groq` |
+| Orchestration | LangGraph (`StateGraph` with conditional edges) |
+| Embeddings | HuggingFace Inference API — `all-MiniLM-L6-v2` (384 dim) |
+| Vector DB | Pinecone (cosine similarity) |
+| Database + Auth | Supabase (Postgres, RLS, JWT) |
+| API | FastAPI + Uvicorn |
+| Frontend | Vanilla HTML/CSS/JS (no framework) |
+| Config | `pydantic-settings` + `.env` |
+| Deployment | Railway (backend) + Vercel (frontend) + Docker |
+
+## API
+
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+|---|---|---|
 | GET | `/` | Status check |
 | GET | `/health` | Health check |
 | POST | `/chat` | Main endpoint — supervisor routing + agent response (`message`, optional `session_id`) |
 | POST | `/health/ask` | Direct RAG — retrieve + cited answer (`question`, optional `top_k`) |
 | POST | `/health/search` | Retrieval only — chunks + similarity scores (`query`, optional `top_k`) |
+| GET | `/auth/me` | Current user (Bearer token) |
+| GET | `/auth/conversations` | User's conversations (Bearer token) |
+| GET | `/auth/conversations/{id}/messages` | Messages of a conversation (Bearer token) |
 
-### Config / Environment ✅
-- API keys managed via `.env` + `pydantic-settings`
-- Supports: Google API, HuggingFace token, Pinecone, Supabase, Groq, Google Calendar
-
-### Prompts ✅
-- All agent prompts centralized in `prompts.json` (triage, supervisor, health_info)
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| LLM | Gemini (`langchain-google-genai`) |
-| Orchestration | LangGraph (`StateGraph` with conditional edges) |
-| Embeddings | HuggingFace Inference API — `all-MiniLM-L6-v2` (384 dim) |
-| Vector DB | Pinecone (cosine similarity) |
-| Database | Supabase (not connected yet — planned) |
-| API | FastAPI + Uvicorn |
-| Frontend | Vanilla HTML/CSS/JS (Plus Jakarta Sans, responsive, no framework) |
-| Config | `pydantic-settings` + `.env` |
-| Deployment | Docker (3.11-slim) |
-
-## What's Remaining
-
-| Priority | Task | Status |
-|----------|------|--------|
-| 🔴 High | **Booking Agent** — LLM multi-step conversation, doctor + slot selection, booking ID | Planned |
-| 🔴 High | **Auth / Login** — Supabase Auth (email/password) + login page | Planned |
-| 🟡 Medium | **Supabase integration** — persistent conversations, bookings, user sessions | Planned |
-| 🟡 Medium | **Speed optimization** — local embeddings (replace HF API), response caching, streaming | Planned |
-| 🟢 Low | **Hybrid search** — keyword + semantic retrieval | Not started |
-| 🟢 Low | **Deployment** — Docker Compose + hosting | Dockerfile exists |
-
-## File Structure
+## Project Structure
 
 ```
 app/
 ├── agents/
 │   ├── supervisor.py        ✅ Routes queries to correct agent
 │   ├── triage_agent.py      ✅ Classifies symptom severity
-│   ├── health_info_agent.py ✅ RAG: retrieve + Gemini cited answer
-│   ├── booking_agent.py     ⬜ Empty — LLM multi-step booking (planned)
+│   ├── health_info_agent.py ✅ RAG: retrieve + cited answer
+│   ├── booking_agent.py     ⬜ Placeholder (calendar integration planned)
 │   ├── graph.py             ✅ Full LangGraph with conditional routing
-│   └── state.py             ✅ Shared state schema
-├── api/routes/
-│   ├── chat.py              ✅ Async /chat + /chat/health
-│   ├── health.py            ✅ Direct RAG: /health/ask + /health/search
-│   └── booking.py           ⬜ Stub — references missing calendar service
+│   └── state.py             ✅ Shared state schema (incl. conversation history)
+├── api/
+│   ├── deps.py              ✅ JWT middleware (strict + optional variants)
+│   └── routes/
+│       ├── auth.py          ✅ /auth/me + conversation history endpoints
+│       ├── chat.py          ✅ Async /chat with persistence + history wiring
+│       ├── health.py        ✅ Direct RAG: /health/ask + /health/search
+│       └── booking.py       ⬜ Stub
 ├── rag/
-│   ├── __init__.py          ✅ Package init
 │   ├── ingest.py            ✅ PDF load + paragraph-first chunking
-│   ├── embeddings.py        ✅ HF Inference API embeddings (384-dim)
-│   └── test_embedding.py    ✅ Quick embedding smoke test
+│   ├── embeddings.py        ✅ HF Inference API embeddings + ingestion pipeline
+│   └── test_embedding.py    ✅ Embedding smoke test
 ├── services/
+│   ├── db_service.py        ✅ Supabase client + conversation/message CRUD
+│   ├── llm_service.py       ✅ Shared Groq LLM singleton
 │   ├── vector_store.py      ✅ Pinecone create/upsert/query
-│   ├── llm_service.py       ✅ Shared Gemini singleton
-│   ├── calendar_service.py  ⬜ Empty — slot management (planned)
-│   └── db_service.py        ⬜ Empty — Supabase client (planned)
+│   └── calendar_service.py  ⬜ Google Calendar (planned)
 ├── models/
-│   └── schemas.py           ✅ TriageResult, RoutingResult, TriageRequest
-├── utils/
-│   └── red_flags.py         ✅ Emergency keyword detection
+│   ├── schemas.py           ✅ TriageResult, RoutingResult, request/response models
+│   └── db_models.py         ✅ DB entity models
+├── core/                    ✅ Logging, security, custom exceptions
+├── utils/red_flags.py       ✅ Emergency keyword detection
 ├── config.py                ✅ All env vars configured
 └── main.py                  ✅ FastAPI app + CORS + routers
 frontend/
-├── index.html               ✅ Landing page (mission, features, topics)
-├── chat.html                ✅ Chat UI (sessions, suggestions, badges)
-├── style.css                ✅ Blue & white responsive design system
-├── script.js                ✅ Scroll reveal + smooth scroll
-└── chat.js                  ✅ Chat logic + localStorage session memory
-tests/
-├── test_api_chat.py         ✅ API endpoint tests
-├── test_booking_agent.py    ⬜ Booking agent tests (planned)
-├── test_rag_retriever.py    ✅ Embed query → Pinecone search
-└── test_triage_agent.py     ✅ Triage severity tests
+├── index.html               ✅ Landing page
+├── auth.html + auth.js      ✅ Login/Signup + Google OAuth
+├── chat.html + chat.js      ✅ Chat UI + Supabase session + history
+├── style.css                ✅ Responsive design system
+└── script.js                ✅ Scroll reveal + smooth scroll
+prompts.json                 ✅ Centralized agent prompts (few-shot + rubric)
+data/health_docs/            ✅ Health knowledge base (PDF + markdown)
 scripts/
-└── seed_vector_db.py        ✅ Seed vector database
+├── supabase_schema.sql      ✅ Tables + RLS policies
+├── create_supabase_tables.py ✅ Schema provisioning script
+└── seed_vector_db.py        ✅ Vector DB seeding
+tests/                       ✅ pytest suite (chat, triage, booking, RAG)
 ```
 
-## How to Run
+## How to Run (Local)
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# 1. Ingest health docs into Pinecone (one-time)
+# 2. Copy .env.example → .env and add keys:
+#    GROQ_API_KEY, HF_TOKEN, PINECONE_API_KEY, PINECONE_INDEX_NAME,
+#    SUPABASE_URL, SUPABASE_KEY, SUPABASE_ANON_KEY
+
+# 3. Create Supabase tables (one-time): run scripts/supabase_schema.sql in SQL Editor
+
+# 4. Ingest health docs into Pinecone (one-time)
 python -m app.rag.embeddings
 
-# 2. Test retriever (embed query → search Pinecone)
-python -m tests.test_rag_retriever
-
-# 3. Test supervisor routing
-python -m app.agents.supervisor
-
-# 4. Test triage severity
-python -m app.agents.triage_agent
-
-# 5. Test full graph (all agents end-to-end)
-python -m app.agents.graph
-
-# 6. Start API
+# 5. Start API
 uvicorn app.main:app --reload
 # Docs: http://localhost:8000/docs
 
-# 7. Open frontend
-# Landing page:   frontend/index.html  (browser mein kholo)
-# Chat page:      frontend/chat.html   (API running honi chahiye)
+# 6. Open the frontend (static — open in browser or use Live Server)
+#    Landing: frontend/index.html   Chat: frontend/chat.html
 ```
 
-> **Note**: Frontend static files hain — kisi server ki zaroorat nahi, browser mein directly kholo. Chat API `http://127.0.0.1:8000` pe running honi chahiye (CORS enabled).
-
-## Docker Setup (Friend / Deployment)
-
-Docker se chalanay ke liye — koi Python install karne ki zaroorat nahi:
+## Docker
 
 ```bash
-# 1. Copy .env.example → .env aur apni API keys daalo (GOOGLE_API_KEY, HF_TOKEN, PINECONE_API_KEY zaroori)
-# 2. Build + run
 docker-compose up --build
-
-# 3. Check
-curl http://localhost:8000/health
-# → {"status": "ok", "service": "Sehat Sathi"}
-```
-
-### Docker Details
-- **Python 3.11.9-slim** — local dev venv (3.11.9) se exact match
-- **Healthcheck** — `/health` pe automatic status check
-- **Volume** — `./data` mount hota hai (health docs ke liye)
-- **Secrets safe** — `.dockerignore` se `.env` image mein bake nahi hota
-
-### Manual Docker (without compose)
-```bash
-docker build -t sehat-sathi .
-docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data sehat-sathi
+# Check: curl http://localhost:8000/health
 ```
 
 ## Demo Queries
 
 | Input | Expected Flow |
-|-------|---------------|
-| `"seene me dard hai aur saans nahi aa rahi"` | triage → EMERGENCY → "Call 1122" |
+|---|---|
+| `"seene me dard hai aur saans nahi aa rahi"` | triage → `emergency` → "Call 1122" alert |
+| `"bukhar hai 3 din se"` | triage → `moderate` → doctor visit advice |
 | `"diabetes kya hai?"` | health_info → RAG cited answer |
 | `"malaria se kaise bache?"` | health_info → RAG cited answer |
 | `"doctor ka appointment chahiye"` | booking → placeholder (in development) |
-| `"hello"` | general → Urdu greeting |
+| `"hello"` | general → greeting |
 
-## Known Issues / Fixes
+## Roadmap
 
-- **Gemini content format**: `response.content` kabhi list return karta hai (content blocks) — `health_info_agent.py` dono formats handle karta hai (string + list)
-- **HF API latency**: Query embedding ke liye free HF Inference API 3-8 sec leti hai — local embeddings planned
-- **No auth**: API open hai — Supabase Auth planned
-- **Conversations in localStorage only**: Server restart pe data nahi bachta — Supabase integration planned
+| Priority | Task | Status |
+|---|---|---|
+| 🔴 High | Booking Agent — calendar integration, slot selection, booking ID | Planned |
+| 🟡 Medium | Streaming responses (SSE) + embedding caching | Planned |
+| 🟡 Medium | Multilingual embedding model for better cross-lingual retrieval | Planned |
+| 🟢 Low | Hybrid search (keyword + semantic) | Not started |
+| 🟢 Low | Eval harness with golden routing/severity dataset | Not started |
+
+## Known Limitations
+
+- Booking agent is a placeholder — calendar integration in development
+- HF Inference API embedding adds 3–8s latency per query (local/multilingual embeddings planned)
+- No response streaming yet
