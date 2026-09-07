@@ -17,13 +17,16 @@ llm = get_llm()
 structured_llm = llm.with_structured_output(RoutingResult, method="json_mode")
 
 
-def run_supervisor(query: str) -> RoutingResult:
-    prompt = f"{SUPERVISOR_PROMPT}\n\nUser message: {query}"
+def run_supervisor(query: str, history: str | None = None) -> RoutingResult:
+    context = ""
+    if history:
+        context = f"\n\nConversation history:\n{history}"
+    prompt = f"{SUPERVISOR_PROMPT}{context}\n\nUser message: {query}"
     return structured_llm.invoke(prompt)
 
 
 def supervisor_node(state: SehatSathiState) -> SehatSathiState:
-    result = run_supervisor(state["query"])
+    result = run_supervisor(state["query"], state.get("history"))
     state["route_to"] = result.route
     state["reasoning"] = result.reasoning
     print(f"Supervisor routed to: {result.route} ({result.reasoning})")

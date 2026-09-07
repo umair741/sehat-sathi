@@ -24,7 +24,7 @@ def _build_context(chunks: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
-def run_health_info(query: str, top_k: int = 5) -> str:
+def run_health_info(query: str, history: str | None = None, top_k: int = 5) -> str:
     """Retrieve relevant health docs from Pinecone and generate a cited answer via Gemini."""
     # 1. Embed the query
     query_vec = embed_text(query)
@@ -41,10 +41,16 @@ def run_health_info(query: str, top_k: int = 5) -> str:
     # 3. Build context from retrieved chunks
     context = _build_context(results)
 
-    # 4. Generate answer with Gemini
+    # 4. Build conversation history context
+    history_context = ""
+    if history:
+        history_context = f"\n\nConversation history:\n{history}"
+
+    # 5. Generate answer with Gemini
     prompt = (
         f"{HEALTH_INFO_PROMPT}\n\n"
         f"Context:\n{context}\n\n"
+        f"{history_context}\n\n"
         f"User question: {query}\n\n"
         f"Answer:"
     )
@@ -67,6 +73,6 @@ def run_health_info(query: str, top_k: int = 5) -> str:
 
 def health_info_node(state: SehatSathiState) -> SehatSathiState:
     """LangGraph node: run RAG pipeline and store the answer in state."""
-    response = run_health_info(state["query"])
+    response = run_health_info(state["query"], state.get("history"))
     state["health_response"] = response
     return state

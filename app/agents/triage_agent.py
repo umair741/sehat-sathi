@@ -18,14 +18,17 @@ llm = get_llm()
 structured_llm = llm.with_structured_output(TriageResult, method="json_mode")
 
 
-def run_triage(query: str) -> TriageResult:
-    full_prompt = f"{TRIAGE_SYSTEM_PROMPT}\n\nSymptom: {query}"
+def run_triage(query: str, history: str | None = None) -> TriageResult:
+    context = ""
+    if history:
+        context = f"\n\nConversation history:\n{history}"
+    full_prompt = f"{TRIAGE_SYSTEM_PROMPT}{context}\n\nSymptom: {query}"
     result = structured_llm.invoke(full_prompt)
     return result
 
 
 def triage_node(state: SehatSathiState) -> SehatSathiState:
-    result = run_triage(state["query"])
+    result = run_triage(state["query"], state.get("history"))
     state["severity"] = result.severity
     state["reasoning"] = result.reasoning
     return state
