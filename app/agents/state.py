@@ -4,6 +4,7 @@ from typing import TypedDict, Optional
 class SehatSathiState(TypedDict):
     query: str
     history: Optional[str]
+    user_id: Optional[str]
     route_to: Optional[str]
     severity: Optional[str]
     reasoning: Optional[str]

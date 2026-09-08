@@ -3,11 +3,7 @@ from app.agents.state import SehatSathiState
 from app.agents.supervisor import supervisor_node
 from app.agents.triage_agent import triage_node
 from app.agents.health_info_agent import health_info_node
-
-
-def booking_node(state: SehatSathiState) -> SehatSathiState:
-    state["booking_confirmation"] = {"status": "pending", "message": "Booking agent coming soon."}
-    return state
+from app.agents.booking_agent import booking_node
 
 
 def general_node(state: SehatSathiState) -> SehatSathiState:
@@ -74,6 +70,8 @@ if __name__ == "__main__":
     for query in test_queries:
         result = compiled_graph.invoke({
             "query": query,
+            "history": None,
+            "user_id": None,
             "route_to": None,
             "severity": None,
             "reasoning": None,

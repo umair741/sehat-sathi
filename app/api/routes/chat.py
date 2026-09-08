@@ -85,6 +85,7 @@ async def chat(request: ChatRequest, user: Optional[dict] = Depends(get_optional
         {
             "query": request.message,
             "history": history,
+            "user_id": user["id"] if user else None,
             "route_to": None,
             "severity": None,
             "reasoning": None,
