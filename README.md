@@ -26,7 +26,7 @@ User Query (Urdu / Roman Urdu / English)
        │
        ├── "triage"       → Triage Agent (symptom → emergency/moderate/mild)
        ├── "health_info"  → RAG Agent (Pinecone retrieval + cited answer)
-       ├── "booking"      → Booking Agent (in development)
+       ├── "booking"      → Booking Agent (facility + token-based appointment)
        └── "general"      → Greetings / chitchat / unclear input
 ```
 
@@ -36,7 +36,7 @@ User Query (Urdu / Roman Urdu / English)
 START → supervisor → conditional routing:
     ├── triage       → severity classification → END
     ├── health_info  → embed → Pinecone search → cited answer → END
-    ├── booking      → placeholder ("coming soon")            → END
+    ├── booking      → facility → doctor → slot → request      → END
     └── general      → greeting response                       → END
 ```
 
@@ -69,6 +69,15 @@ START → supervisor → conditional routing:
 - Supabase Auth (email/password + Google OAuth) with JWT verification middleware
 - `/chat` is dual-mode: authenticated chats persist user + bot messages; anonymous chats still work
 - Conversation + message storage in Supabase with Row-Level Security
+- Profiles table stores role (`patient`/`admin`) and phone number
+
+### Booking & Appointments ✅
+- Facility-first appointment system designed for rural/semi-urban Pakistan
+- Tables: `facilities` (BHU/RHC/Clinic/Hospital), `doctors`, `bookings`
+- Token-based booking request flow: select facility → doctor → date → slot
+- Simple status lifecycle: `pending` → `confirmed`/`cancelled`/`completed`
+- Partial unique index prevents double-booking of confirmed slots
+- Seed data included for Sukkur/Rohri/Khairpur region
 
 ### Frontend ✅
 - Landing page (`index.html`), auth page (`auth.html`), full chat UI (`chat.html`)
@@ -105,6 +114,13 @@ START → supervisor → conditional routing:
 | GET | `/auth/me` | Current user (Bearer token) |
 | GET | `/auth/conversations` | User's conversations (Bearer token) |
 | GET | `/auth/conversations/{id}/messages` | Messages of a conversation (Bearer token) |
+| GET | `/booking/facilities?location=` | List health facilities |
+| GET | `/booking/doctors?facility_id=` | List doctors by facility |
+| GET | `/booking/slots?doctor_id=&date=` | Available slots for a doctor/date |
+| POST | `/booking/request` | Create appointment request (Bearer token) |
+| GET | `/booking/my` | My bookings (Bearer token) |
+| GET | `/booking/{token}` | Booking status by token |
+| PATCH | `/booking/{id}/status?status=` | Admin confirm/cancel (Bearer token) |
 
 ## Project Structure
 
@@ -114,7 +130,7 @@ app/
 │   ├── supervisor.py        ✅ Routes queries to correct agent
 │   ├── triage_agent.py      ✅ Classifies symptom severity
 │   ├── health_info_agent.py ✅ RAG: retrieve + cited answer
-│   ├── booking_agent.py     ⬜ Placeholder (calendar integration planned)
+│   ├── booking_agent.py     ✅ Facility/doctor/slot booking tools
 │   ├── graph.py             ✅ Full LangGraph with conditional routing
 │   └── state.py             ✅ Shared state schema (incl. conversation history)
 ├── api/
@@ -123,13 +139,13 @@ app/
 │       ├── auth.py          ✅ /auth/me + conversation history endpoints
 │       ├── chat.py          ✅ Async /chat with persistence + history wiring
 │       ├── health.py        ✅ Direct RAG: /health/ask + /health/search
-│       └── booking.py       ⬜ Stub
+│       └── booking.py       ✅ Booking endpoints
 ├── rag/
 │   ├── ingest.py            ✅ PDF load + paragraph-first chunking
 │   ├── embeddings.py        ✅ HF Inference API embeddings + ingestion pipeline
 │   └── test_embedding.py    ✅ Embedding smoke test
 ├── services/
-│   ├── db_service.py        ✅ Supabase client + conversation/message CRUD
+│   ├── db_service.py        ✅ Supabase client + conversation/message/booking CRUD
 │   ├── llm_service.py       ✅ Shared Groq LLM singleton
 │   ├── vector_store.py      ✅ Pinecone create/upsert/query
 │   └── calendar_service.py  ⬜ Google Calendar (planned)
@@ -151,6 +167,7 @@ data/health_docs/            ✅ Health knowledge base (PDF + markdown)
 scripts/
 ├── supabase_schema.sql      ✅ Tables + RLS policies
 ├── create_supabase_tables.py ✅ Schema provisioning script
+├── seed_facilities.py       ✅ Demo facilities + doctors seed script
 └── seed_vector_db.py        ✅ Vector DB seeding
 tests/                       ✅ pytest suite (chat, triage, booking, RAG)
 ```
@@ -165,16 +182,18 @@ pip install -r requirements.txt
 #    GROQ_API_KEY, HF_TOKEN, PINECONE_API_KEY, PINECONE_INDEX_NAME,
 #    SUPABASE_URL, SUPABASE_KEY, SUPABASE_ANON_KEY
 
-# 3. Create Supabase tables (one-time): run scripts/supabase_schema.sql in SQL Editor
+# 3. Create Supabase tables (one-time): run scripts/create_supabase_tables.py or scripts/supabase_schema.sql in SQL Editor
+# 4. Seed demo facilities + doctors (optional, for testing)
+python scripts/seed_facilities.py
 
-# 4. Ingest health docs into Pinecone (one-time)
+# 5. Ingest health docs into Pinecone (one-time)
 python -m app.rag.embeddings
 
-# 5. Start API
+# 6. Start API
 uvicorn app.main:app --reload
 # Docs: http://localhost:8000/docs
 
-# 6. Open the frontend (static — open in browser or use Live Server)
+# 7. Open the frontend (static — open in browser or use Live Server)
 #    Landing: frontend/index.html   Chat: frontend/chat.html
 ```
 
@@ -193,14 +212,15 @@ docker-compose up --build
 | `"bukhar hai 3 din se"` | triage → `moderate` → doctor visit advice |
 | `"diabetes kya hai?"` | health_info → RAG cited answer |
 | `"malaria se kaise bache?"` | health_info → RAG cited answer |
-| `"doctor ka appointment chahiye"` | booking → placeholder (in development) |
+| `"doctor ka appointment chahiye"` | booking → facility → doctor → slot → token |
 | `"hello"` | general → greeting |
 
 ## Roadmap
 
 | Priority | Task | Status |
 |---|---|---|
-| 🔴 High | Booking Agent — calendar integration, slot selection, booking ID | Planned |
+| 🔴 High | Booking Agent — connect chat agent to booking endpoints | In progress |
+| 🟡 Medium | Admin dashboard for facility staff | Planned |
 | 🟡 Medium | Streaming responses (SSE) + embedding caching | Planned |
 | 🟡 Medium | Multilingual embedding model for better cross-lingual retrieval | Planned |
 | 🟢 Low | Hybrid search (keyword + semantic) | Not started |
@@ -208,6 +228,6 @@ docker-compose up --build
 
 ## Known Limitations
 
-- Booking agent is a placeholder — calendar integration in development
+- Booking agent backend API is ready; frontend/agent wiring is in progress
 - HF Inference API embedding adds 3–8s latency per query (local/multilingual embeddings planned)
 - No response streaming yet
