@@ -17,7 +17,7 @@ def get_connection_string() -> str:
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         print("Error: DATABASE_URL env var not set.")
-        print("Copy the connection string from Supabase Settings → Database")
+        print("Copy the connection string from Supabase Settings -> Database")
         sys.exit(1)
     return db_url
 
@@ -43,9 +43,67 @@ CREATE TABLE IF NOT EXISTS messages (
   timestamp TIMESTAMPTZ DEFAULT now()
 );
 
+-- profiles table (extends auth.users)
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  role TEXT DEFAULT 'patient',
+  full_name TEXT,
+  phone TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- facilities table (BHU / RHC / Clinic / Hospital)
+CREATE TABLE IF NOT EXISTS facilities (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  district TEXT NOT NULL,
+  tehsil TEXT,
+  address TEXT,
+  phone TEXT,
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- doctors table (linked to a facility)
+CREATE TABLE IF NOT EXISTS doctors (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  facility_id UUID REFERENCES facilities(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  specialty TEXT,
+  qualification TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- bookings table (appointment requests / tokens)
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  patient_id UUID REFERENCES auth.users(id) NOT NULL,
+  doctor_id UUID REFERENCES doctors(id) NOT NULL,
+  facility_id UUID REFERENCES facilities(id) NOT NULL,
+  requested_date DATE NOT NULL,
+  slot TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  token TEXT UNIQUE NOT NULL,
+  patient_phone TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Prevent double-booking: same doctor cannot have two confirmed bookings on same date+slot
+CREATE UNIQUE INDEX IF NOT EXISTS unique_confirmed_slot
+  ON bookings (doctor_id, requested_date, slot)
+  WHERE status = 'confirmed';
+
 -- Enable RLS
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE facilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE doctors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies
 DO $$
@@ -76,6 +134,51 @@ BEGIN
   ) THEN
     CREATE POLICY "Users can create own messages" ON messages
       FOR INSERT WITH CHECK (user_id = auth.uid());
+  END IF;
+
+  -- profiles policies
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can see own profile'
+  ) THEN
+    CREATE POLICY "Users can see own profile" ON profiles
+      FOR SELECT USING (id = auth.uid());
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can update own profile'
+  ) THEN
+    CREATE POLICY "Users can update own profile" ON profiles
+      FOR UPDATE USING (id = auth.uid());
+  END IF;
+
+  -- facilities / doctors are public read
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'facilities' AND policyname = 'Public can view facilities'
+  ) THEN
+    CREATE POLICY "Public can view facilities" ON facilities
+      FOR SELECT USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'doctors' AND policyname = 'Public can view doctors'
+  ) THEN
+    CREATE POLICY "Public can view doctors" ON doctors
+      FOR SELECT USING (true);
+  END IF;
+
+  -- bookings policies (patient sees/inserts own; status updates go through backend service role)
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'bookings' AND policyname = 'Users can see own bookings'
+  ) THEN
+    CREATE POLICY "Users can see own bookings" ON bookings
+      FOR SELECT USING (patient_id = auth.uid());
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'bookings' AND policyname = 'Users can create own bookings'
+  ) THEN
+    CREATE POLICY "Users can create own bookings" ON bookings
+      FOR INSERT WITH CHECK (patient_id = auth.uid());
   END IF;
 END
 $$;
