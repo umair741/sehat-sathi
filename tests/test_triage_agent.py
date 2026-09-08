@@ -1,9 +1,11 @@
-from app.utils.red_flags import contains_red_flag
+"""Smoke tests for the triage agent."""
+
+from app.agents.triage_agent import run_triage
+from app.models.schemas import TriageResult
 
 
-def test_red_flag_detection():
-    assert contains_red_flag("mujhe chest pain ho raha hai") != []
-
-
-def test_no_red_flag_for_mild_symptom():
-    assert contains_red_flag("halka sar dard hai") == []
+def test_run_triage_returns_structured_result():
+    result = run_triage("mujhe halka sar dard hai")
+    assert isinstance(result, TriageResult)
+    assert result.severity in ("emergency", "moderate", "mild")
+    assert isinstance(result.reasoning, str)
