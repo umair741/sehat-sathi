@@ -190,7 +190,7 @@ function renderMessage(msg) {
   if (msg.severity === "emergency") {
     const alert = document.createElement("div");
     alert.className = "emergency-box";
-    alert.textContent = "📞 Call 1122 (Rescue) immediately!";
+    alert.textContent = "📞 Foran 1122 (Rescue) par call karein!";
     div.appendChild(alert);
   }
 
@@ -235,6 +235,112 @@ function removeTypingIndicator() {
   if (typing) typing.remove();
 }
 
+// ================= Booking Flow =================
+
+function renderBookingMessage(booking) {
+  // Render the text reply first (same as a normal bot message)
+  renderMessage({
+    role: "bot",
+    content: booking.message,
+    route: "booking",
+    severity: null,
+  });
+
+  // Then attach interactive UI based on the booking stage
+  if (booking.stage === "need_facility" && booking.facilities) {
+    renderOptionCards(booking.facilities, "facility");
+  } else if (booking.stage === "need_doctor" && booking.doctors) {
+    renderOptionCards(booking.doctors, "doctor");
+  } else if (booking.stage === "need_slot" && booking.slots) {
+    renderSlotGrid(booking.slots);
+  } else if (booking.stage === "booked" && booking.booking) {
+    renderBookingSuccess(booking);
+  }
+}
+
+function renderOptionCards(items, kind) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "option-cards";
+
+  items.forEach((item) => {
+    const card = document.createElement("button");
+    card.className = "option-card";
+
+    if (kind === "facility") {
+      card.innerHTML = `
+        <span class="card-icon">🏥</span>
+        <span class="card-body">
+          <span class="card-title">${escapeHtml(item.name)}</span>
+          <span class="card-sub">${escapeHtml(item.type)} · ${escapeHtml(item.address || item.district || "")}</span>
+        </span>`;
+    } else {
+      card.innerHTML = `
+        <span class="card-icon">👨\u200d⚕️</span>
+        <span class="card-body">
+          <span class="card-title">${escapeHtml(item.name)}</span>
+          <span class="card-sub">${escapeHtml(item.specialty || "General Physician")} · ${escapeHtml(item.qualification || "")}</span>
+        </span>`;
+    }
+
+    // Clicking a card = user typing that name as a chat message
+    card.addEventListener("click", () => sendMessage(item.name));
+    wrapper.appendChild(card);
+  });
+
+  chatEl.appendChild(wrapper);
+  scrollToBottom();
+}
+
+function renderSlotGrid(slots) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "slot-grid";
+
+  slots.forEach((s) => {
+    const btn = document.createElement("button");
+    btn.className = "slot-btn";
+    btn.textContent = s.time;
+    btn.disabled = !s.available;
+    if (!s.available) btn.classList.add("taken");
+
+    // Clicking a slot = user typing that time as a chat message
+    btn.addEventListener("click", () => sendMessage(s.time));
+    wrapper.appendChild(btn);
+  });
+
+  chatEl.appendChild(wrapper);
+  scrollToBottom();
+}
+
+function renderBookingSuccess(booking) {
+  const b = booking.booking;
+  const div = document.createElement("div");
+  div.className = "booking-success";
+  div.innerHTML = `
+    <div class="success-icon">✅</div>
+    <div class="success-title">Appointment Booked!</div>
+    <div class="token-box">Token: <strong>${escapeHtml(b.token)}</strong></div>
+    <div class="success-details">
+      <div>🏥 ${escapeHtml(booking.facility?.name || "")}</div>
+      <div>👨\u200d⚕️ ${escapeHtml(booking.doctor?.name || "")}</div>
+      <div>📅 ${escapeHtml(booking.requested_date || "")} · 🕐 ${escapeHtml(booking.slot || "")}</div>
+    </div>
+    <button class="copy-token-btn" onclick="navigator.clipboard.writeText('${escapeHtml(b.token)}')">📋 Copy Token</button>
+  `;
+  chatEl.appendChild(div);
+  scrollToBottom();
+}
+
+function disableOldOptionCards() {
+  document.querySelectorAll(".option-card").forEach((btn) => {
+    btn.disabled = true;
+    btn.classList.add("disabled");
+  });
+  document.querySelectorAll(".slot-btn").forEach((btn) => {
+    btn.disabled = true;
+    btn.classList.add("disabled");
+  });
+}
+
 // ================= Send Message =================
 
 async function sendMessage(message) {
@@ -245,6 +351,9 @@ async function sendMessage(message) {
   if (chatEl.children.length === 0) {
     renderWelcome();
   }
+
+  // Booking cards are only valid until the next message
+  disableOldOptionCards();
 
   // Show user message
   renderMessage({ role: "user", content: text });
@@ -265,12 +374,16 @@ async function sendMessage(message) {
     const data = await apiPost("/chat", payload);
     removeTypingIndicator();
 
-    renderMessage({
-      role: "bot",
-      content: data.response,
-      route: data.route,
-      severity: data.severity || null,
-    });
+    if (data.route === "booking" && data.booking) {
+      renderBookingMessage(data.booking);
+    } else {
+      renderMessage({
+        role: "bot",
+        content: data.response,
+        route: data.route,
+        severity: data.severity || null,
+      });
+    }
 
     // Update conversation id from backend
     if (data.session_id && !currentConversationId) {

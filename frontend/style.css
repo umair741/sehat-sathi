@@ -1783,6 +1783,200 @@ p { font-size: 1.063rem; line-height: 1.8; }
   color: var(--red-800);
 }
 
+/* ---------- Booking Option Cards ---------- */
+.option-cards {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 72%;
+  width: 100%;
+  animation: msgIn 0.3s ease;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-family: inherit;
+  box-shadow: var(--shadow-xs);
+}
+
+.option-card:hover {
+  border-color: var(--blue-400);
+  background: var(--blue-50);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.option-card:active {
+  transform: translateY(0);
+}
+
+.option-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.option-card .card-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-50);
+  border-radius: 12px;
+}
+
+.option-card .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.option-card .card-title {
+  font-size: 0.938rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.option-card .card-sub {
+  font-size: 0.813rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Slot Grid ---------- */
+.slot-grid {
+  align-self: flex-start;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 72%;
+  animation: msgIn 0.3s ease;
+}
+
+.slot-btn {
+  padding: 12px 8px;
+  background: var(--white);
+  border: 2px solid var(--blue-200);
+  border-radius: 12px;
+  font-size: 0.938rem;
+  font-weight: 700;
+  color: var(--blue-700);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  text-align: center;
+}
+
+.slot-btn:hover {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.slot-btn.taken {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  border-color: var(--gray-200);
+  color: var(--gray-400);
+  background: var(--gray-50);
+}
+
+.slot-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ---------- Booking Success ---------- */
+.booking-success {
+  align-self: flex-start;
+  max-width: 72%;
+  background: linear-gradient(135deg, var(--green-50), var(--white));
+  border: 2px solid var(--green-100);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  animation: msgIn 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.booking-success .success-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.booking-success .success-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #166534;
+  margin-bottom: 12px;
+}
+
+.booking-success .token-box {
+  background: var(--white);
+  border: 2px dashed var(--green);
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 1.063rem;
+  color: var(--gray-900);
+  margin-bottom: 14px;
+}
+
+.booking-success .token-box strong {
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  color: #166534;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.booking-success .success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.938rem;
+  color: var(--gray-600);
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.booking-success .copy-token-btn {
+  background: var(--green-100);
+  color: #166534;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.booking-success .copy-token-btn:hover {
+  background: var(--green);
+  color: var(--white);
+}
+
 /* ---------- Suggestions ---------- */
 .suggestions {
   display: flex;
@@ -1899,6 +2093,9 @@ p { font-size: 1.063rem; line-height: 1.8; }
   .hero { padding: 60px 20px 0; }
   .sidebar { display: none; }
   .msg { max-width: 88%; }
+  .option-cards { max-width: 88%; }
+  .slot-grid { max-width: 88%; grid-template-columns: repeat(3, 1fr); }
+  .booking-success { max-width: 88%; }
 }
 
 @media (max-width: 480px) {
