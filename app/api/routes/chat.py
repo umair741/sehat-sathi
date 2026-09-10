@@ -128,35 +128,8 @@ async def health():
 
 
 def _build_response(state: dict, route: str) -> str:
-    """Build a user-friendly response based on the agent route."""
-
     if route == "triage":
-        severity = state.get("severity", "unknown")
-        reasoning = state.get("reasoning", "")
-
-        if severity == "emergency":
-            return (
-                f"⚠️ EMERGENCY DETECTED: {reasoning}\n"
-                "Please call 1122 (Rescue) or go to the nearest hospital immediately."
-            )
-        elif severity == "moderate":
-            return f"{reasoning}\nYou should see a doctor soon. Would you like to book an appointment?"
-        else:
-            return f"{reasoning}\nThis seems mild. Rest, stay hydrated, and monitor your symptoms."
-
-    elif route == "health_info":
-        return state.get("health_response", "I couldn't find relevant information for your question.")
-
-    elif route == "booking":
-        booking = state.get("booking_confirmation")
-        if booking and booking.get("success"):
-            return f"Appointment booked! {booking.get('message', '')}"
-        return "I'd be happy to help you book an appointment. Please tell me the date and time."
-
-    elif route == "general":
-        return state.get(
-            "health_response",
-            "Assalam o Alaikum! Main Sehat Sathi hoon. Apni sehat ke baare mein kuch bhi pooch sakte hain.",
-        )
-
-    return "Something went wrong. Please try again."
+        return state.get("reasoning") or ""
+    if route == "booking":
+        return (state.get("booking_confirmation") or {}).get("message") or ""
+    return state.get("health_response") or ""
