@@ -25,8 +25,7 @@ def _build_context(chunks: list[dict]) -> str:
 
 
 def run_health_info(query: str, history: str | None = None, top_k: int = 5) -> str:
-    """Retrieve relevant health docs from Pinecone and generate a cited answer via Gemini."""
-    # 1. Embed the query
+    """Retrieve relevant health docs from Pinecone and generate a cited answer."""
     query_vec = embed_text(query)
 
     # 2. Search Pinecone
