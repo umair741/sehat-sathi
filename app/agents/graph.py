@@ -1,13 +1,30 @@
+import json
+import os
+
 from langgraph.graph import StateGraph, END
+
 from app.agents.state import SehatSathiState
 from app.agents.supervisor import supervisor_node
 from app.agents.triage_agent import triage_node
 from app.agents.health_info_agent import health_info_node
 from app.agents.booking_agent import booking_node
+from app.services.llm_service import get_llm
+
+_prompts_path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts.json")
+with open(_prompts_path, "r", encoding="utf-8") as f:
+    _prompts = json.load(f)
+
+GENERAL_PROMPT = _prompts["general"]["system_prompt"]
+
+llm = get_llm()
 
 
 def general_node(state: SehatSathiState) -> SehatSathiState:
-    state["health_response"] = "Assalam o Alaikum! Main Sehat Sathi hoon. Apni sehat ke baare mein kuch bhi pooch sakte hain."
+    prompt = GENERAL_PROMPT.format(
+        history=state.get("history") or "(no previous messages)",
+        query=state["query"],
+    )
+    state["health_response"] = llm.invoke(prompt).content
     return state
 
 
